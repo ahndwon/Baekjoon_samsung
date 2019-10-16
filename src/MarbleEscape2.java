@@ -1,7 +1,13 @@
 import java.util.Scanner;
 
 // https://www.acmicpc.net/problem/13460
-//
+// 실수한 점 : 1.맵 복사
+//           2.공 복사
+//           3. 위치 바꿔치기 실수함 (distance 사용 까먹음)
+//           4. visit 체크 두가지 (red ball, blue ball)
+// -> 복사를 해야되는지 안해야되는지 판단 잘해야된다.
+// -> 복사하는것을 빼먹어서 결과가 자꾸 조금씩 틀려서 디버깅 오래걸림.
+
 public class MarbleEscape2 {
     static int N;
     static int M;
@@ -21,7 +27,7 @@ public class MarbleEscape2 {
         sc.nextLine();
         map = new char[N][M];
         Ball redBall = new Ball(false, 0, 0);
-        Ball blueBall = new Ball(false , 0 ,0);
+        Ball blueBall = new Ball(false, 0, 0);
 
         for (int i = 0; i < N; i++) {
             char[] line = sc.nextLine().toCharArray();
@@ -31,19 +37,16 @@ public class MarbleEscape2 {
                 map[i][j] = tile;
 
                 if (tile == 'B') {
+                    map[i][j] = '.';
                     blueBall = new Ball(false, i, j);
                 } else if (tile == 'R') {
+                    map[i][j] = '.';
                     redBall = new Ball(true, i, j);
                 }
             }
         }
 
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < M; j++) {
-                System.out.print(map[i][j] + " ");
-            }
-            System.out.println();
-        }
+//        printMap(redBall, blueBall);
 
         int[][] redVisit = new int[N][M];
         int[][] blueVisit = new int[N][M];
@@ -67,12 +70,11 @@ public class MarbleEscape2 {
         }
 
         for (int i = 0; i < 4; i++) {
-            System.out.println();
-            System.out.println("redBall pos : " + redBall.x + ", " + redBall.y);
-            System.out.println("blueBall pos : " + blueBall.x + ", " + blueBall.y);
-//            moveMap(0, redVisit, blueVisit, -2, -2);
-            moveMap(redBall, blueBall, 1, copyVisit(redVisit), copyVisit(blueVisit), dx[i], dy[i]);
-            System.out.println();
+//            System.out.println();
+//            System.out.println("redBall pos : " + redBall.x + ", " + redBall.y);
+//            System.out.println("blueBall pos : " + blueBall.x + ", " + blueBall.y);
+            moveMap(copyBall(redBall), copyBall(blueBall), 0, copyVisit(redVisit), copyVisit(blueVisit), dx[i], dy[i]);
+//            System.out.println();
         }
 
         if (answer == Integer.MAX_VALUE) {
@@ -82,19 +84,36 @@ public class MarbleEscape2 {
         }
     }
 
+    static void printMap(Ball red, Ball blue) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                if (red.x == i && red.y == j) {
+                    System.out.print("R" + " ");
+                } else if (blue.x == i && blue.y == j) {
+                    System.out.print("B" + " ");
+                } else
+                    System.out.print(map[i][j] + " ");
+
+            }
+            System.out.println();
+        }
+    }
+
+
     static void moveMap(Ball redBall, Ball blueBall, int count, int[][] redVisit, int[][] blueVisit, int dx, int dy) {
+        count++;
         if (count > 10) {
             return;
         }
-
-        System.out.println("count : " + count);
-        System.out.println("direction : " + dx + ", " + dy);
+//
+//        System.out.println("count : " + count);
+//        System.out.println("direction : " + dx + ", " + dy);
 
         redBall.setDirections(dx, dy);
         blueBall.setDirections(dx, dy);
 
         if (redVisit[redBall.x][redBall.y] == 1 && blueVisit[blueBall.x][blueBall.y] == 1) {
-            System.out.println("visit == 1");
+//            System.out.println("visit == 1");
             return;
         } else {
             redVisit[redBall.x][redBall.y] = 1;
@@ -106,7 +125,7 @@ public class MarbleEscape2 {
 
 //        while (redBall.dx != -2 && map[redBall.nextX()][redBall.nextY()] != '#') {
         while (map[redBall.nextX()][redBall.nextY()] != '#') {
-            System.out.println("redMove");
+//            System.out.println("redMove");
             redBall.move();
             if (map[redBall.x][redBall.y] == 'O') {
                 isRedOver = true;
@@ -116,7 +135,7 @@ public class MarbleEscape2 {
 
 //        while (blueBall.dx != -2 && map[blueBall.nextX()][blueBall.nextY()] != '#') {
         while (map[blueBall.nextX()][blueBall.nextY()] != '#') {
-            System.out.println("blueMove");
+//            System.out.println("blueMove");
             blueBall.move();
             if (map[blueBall.x][blueBall.y] == 'O') {
                 isBlueOver = true;
@@ -124,35 +143,40 @@ public class MarbleEscape2 {
             }
         }
 
-        System.out.println("redBall pos : " + redBall.x + ", " + redBall.y);
-        System.out.println("blueBall pos : " + blueBall.x + ", " + blueBall.y);
-
-        System.out.println("isRedOver : " + isRedOver + " isBlueOver: " + isBlueOver);
+//        System.out.println("redBall pos : " + redBall.x + ", " + redBall.y);
+//        System.out.println("blueBall pos : " + blueBall.x + ", " + blueBall.y);
+//
+//        System.out.println("isRedOver : " + isRedOver + " isBlueOver: " + isBlueOver);
 
         if (isBlueOver && isRedOver) return;
         else if (isBlueOver) return;
         else if (isRedOver) {
-            System.out.println("count answer : " + count);
+//            System.out.println("count answer : " + count);
             answer = Math.min(count, answer);
             return;
         }
 
         // 겹칠 경우
         if (redBall.x == blueBall.x && redBall.y == blueBall.y) {
+//            System.out.println("same");
             if (redBall.distance > blueBall.distance) {
+//                System.out.println("red reverse");
                 redBall.moveReverse();
             } else {
+//                System.out.println("blue reverse");
                 blueBall.moveReverse();
             }
         }
 
+//        printMap(redBall, blueBall);
+
         for (int i = 0; i < 4; i++) {
-            moveMap(copyBall(redBall), copyBall(blueBall), count + 1, copyVisit(redVisit), copyVisit(blueVisit), MarbleEscape2.dx[i], MarbleEscape2.dy[i]);
+            moveMap(copyBall(redBall), copyBall(blueBall), count, copyVisit(redVisit), copyVisit(blueVisit), MarbleEscape2.dx[i], MarbleEscape2.dy[i]);
         }
 
     }
 
-//    static int[][] mapToVisit(char[][] map) {
+    //    static int[][] mapToVisit(char[][] map) {
 //        int[][] visit = new int[N][M];
 //
 //        for (int i = 0; i < N; i++) {
@@ -165,7 +189,7 @@ public class MarbleEscape2 {
 //        return
 //    }
 //
-    static int[][] copyVisit (int[][] origin) {
+    static int[][] copyVisit(int[][] origin) {
         int[][] copied = new int[N][M];
 
         for (int i = 0; i < N; i++) {
@@ -209,6 +233,7 @@ class Ball {
     }
 
     void move() {
+        distance++;
         x += dx;
         y += dy;
     }
@@ -227,6 +252,7 @@ class Ball {
     }
 
     void setDirections(int dx, int dy) {
+        distance = 0;
         this.dx = dx;
         this.dy = dy;
     }
